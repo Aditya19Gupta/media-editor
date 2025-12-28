@@ -43,42 +43,42 @@ interface ExportSettings {
 }
 
 const EXPORT_PRESETS = {
-  ultra: { 
-    width: 1920, 
-    height: 1080, 
-    frameRate: 60, 
+  ultra: {
+    width: 1920,
+    height: 1080,
+    frameRate: 60,
     videoBitrate: '12M',
     audioBitrate: '320k',
     format: 'mp4' as const
   },
-  high: { 
-    width: 1920, 
-    height: 1080, 
-    frameRate: 30, 
+  high: {
+    width: 1920,
+    height: 1080,
+    frameRate: 30,
     videoBitrate: '8M',
     audioBitrate: '192k',
     format: 'mp4' as const
   },
-  medium: { 
-    width: 1280, 
-    height: 720, 
-    frameRate: 30, 
+  medium: {
+    width: 1280,
+    height: 720,
+    frameRate: 30,
     videoBitrate: '4M',
     audioBitrate: '128k',
     format: 'mp4' as const
   },
-  low: { 
-    width: 854, 
-    height: 480, 
-    frameRate: 24, 
+  low: {
+    width: 854,
+    height: 480,
+    frameRate: 24,
     videoBitrate: '2M',
     audioBitrate: '96k',
     format: 'mp4' as const
   },
-  fast: { 
-    width: 1280, 
-    height: 720, 
-    frameRate: 24, 
+  fast: {
+    width: 1280,
+    height: 720,
+    frameRate: 24,
     videoBitrate: '3M',
     audioBitrate: '128k',
     format: 'mp4' as const
@@ -183,8 +183,8 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
   // Apply effects using a more reliable approach
   const applyEffectsToImageData = useCallback((
-    ctx: CanvasRenderingContext2D, 
-    clip: Clip, 
+    ctx: CanvasRenderingContext2D,
+    clip: Clip,
     currentFrameTime: number,
     activeTransitions: TransitionEffect[],
     x: number,
@@ -193,18 +193,18 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
     height: number
   ) => {
     let allEffects = [...(clip.effects || [])];
-    
+
     // Add transition effects if this clip is in an active transition
-    const relevantTransitions = activeTransitions.filter(transition => 
+    const relevantTransitions = activeTransitions.filter(transition =>
       transition.fromClipId === clip.id || transition.toClipId === clip.id
     );
-    
+
     relevantTransitions.forEach(transition => {
       if (transition.settings?.effectType) {
         allEffects.push(transition.settings.effectType);
       }
     });
-    
+
     if (allEffects.length === 0) return { opacity: 1 };
 
     let opacity = 1;
@@ -284,17 +284,17 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
     const data = new Uint8ClampedArray(imageData.data);
     const width = imageData.width;
     const height = imageData.height;
-    
+
     // Optimized box blur for better performance - reduced radius for speed
     const blurRadius = Math.max(1, Math.min(radius / 2, 3)); // Reduce radius for speed
-    
+
     // Use step size for faster processing on large images
     const step = width > 200 ? 2 : 1;
-    
+
     for (let y = 0; y < height; y += step) {
       for (let x = 0; x < width; x += step) {
         let r = 0, g = 0, b = 0, a = 0, count = 0;
-        
+
         for (let dy = -blurRadius; dy <= blurRadius; dy += step) {
           for (let dx = -blurRadius; dx <= blurRadius; dx += step) {
             const ny = y + dy;
@@ -309,14 +309,14 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
             }
           }
         }
-        
+
         if (count > 0) {
           const idx = (y * width + x) * 4;
           data[idx] = r / count;
           data[idx + 1] = g / count;
           data[idx + 2] = b / count;
           data[idx + 3] = a / count;
-          
+
           // Fill adjacent pixels if using step > 1
           if (step > 1 && x + 1 < width) {
             const nextIdx = (y * width + x + 1) * 4;
@@ -328,40 +328,40 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
         }
       }
     }
-    
+
     return new ImageData(data, width, height);
   }, []);
 
   const applySepiaEffect = useCallback((imageData: ImageData, intensity: number): ImageData => {
     const data = new Uint8ClampedArray(imageData.data);
-    
+
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
-      
+
       const tr = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
       const tg = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
       const tb = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
-      
+
       data[i] = r + intensity * (tr - r);
       data[i + 1] = g + intensity * (tg - g);
       data[i + 2] = b + intensity * (tb - b);
     }
-    
+
     return new ImageData(data, imageData.width, imageData.height);
   }, []);
 
   const applyBrightnessEffect = useCallback((imageData: ImageData, brightness: number): ImageData => {
     const data = new Uint8ClampedArray(imageData.data);
     const factor = brightness;
-    
+
     for (let i = 0; i < data.length; i += 4) {
       data[i] = Math.min(255, Math.max(0, data[i] * factor));
       data[i + 1] = Math.min(255, Math.max(0, data[i + 1] * factor));
       data[i + 2] = Math.min(255, Math.max(0, data[i + 2] * factor));
     }
-    
+
     return new ImageData(data, imageData.width, imageData.height);
   }, []);
 
@@ -369,34 +369,34 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
     const data = new Uint8ClampedArray(imageData.data);
     const factor = contrast;
     const intercept = 128 * (1 - factor);
-    
+
     for (let i = 0; i < data.length; i += 4) {
       data[i] = Math.min(255, Math.max(0, data[i] * factor + intercept));
       data[i + 1] = Math.min(255, Math.max(0, data[i + 1] * factor + intercept));
       data[i + 2] = Math.min(255, Math.max(0, data[i + 2] * factor + intercept));
     }
-    
+
     return new ImageData(data, imageData.width, imageData.height);
   }, []);
 
   // Get transition opacity for overlapping transitions
   const getTransitionOpacity = useCallback((
-    clip: Clip, 
-    currentFrameTime: number, 
+    clip: Clip,
+    currentFrameTime: number,
     activeTransitions: TransitionEffect[]
   ) => {
-    const relevantTransitions = activeTransitions.filter(transition => 
+    const relevantTransitions = activeTransitions.filter(transition =>
       transition.fromClipId === clip.id || transition.toClipId === clip.id
     );
-    
+
     if (relevantTransitions.length === 0) return 1;
-    
+
     let transitionOpacity = 1;
-    
+
     relevantTransitions.forEach(transition => {
       const overlapPerSide = transition.settings?.overlapPerSide || (transition.duration / 2);
       const midPoint = transition.startTime + overlapPerSide;
-      
+
       if (transition.type === 'crossfade') {
         if (transition.fromClipId === clip.id) {
           // First clip: full opacity until midpoint, then fade out
@@ -417,7 +417,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
         }
       }
     });
-    
+
     return transitionOpacity;
   }, []);
 
@@ -429,12 +429,12 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
     const canvas = canvasRef.current;
     const hiddenPreview = hiddenPreviewRef.current;
-    
+
     if (!canvas || !hiddenPreview) {
       throw new Error('Canvas or preview element not found');
     }
 
-    const ctx = canvas.getContext('2d', { 
+    const ctx = canvas.getContext('2d', {
       alpha: false,
       antialias: true,
       powerPreference: 'high-performance'
@@ -444,7 +444,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
     // Set canvas size
     canvas.width = exportSettings.width;
     canvas.height = exportSettings.height;
-    
+
     // Set high-quality rendering options
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -471,7 +471,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
         if (previewDisplay) {
           // Wait for DOM to update with current time
           await new Promise(resolve => setTimeout(resolve, 3)); // Reduced from 8 to 3
-          
+
           // Render videos with consistent aspect ratio handling AND EFFECTS
           const videos = previewDisplay.querySelectorAll('video') as NodeListOf<HTMLVideoElement>;
           for (const video of Array.from(videos)) {
@@ -481,13 +481,13 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                 video.currentTime = currentFrameTime;
                 await new Promise(resolve => setTimeout(resolve, 3)); // Reduced for speed
               }
-              
+
               // Find the corresponding clip for effects
               const videoSrc = video.src;
-              const currentClip = clips.find(clip => 
-                (clip.type === 'video' || clip.type === 'audio') && 
+              const currentClip = clips.find(clip =>
+                (clip.type === 'video' || clip.type === 'audio') &&
                 clip.videoUrl === videoSrc &&
-                currentFrameTime >= clip.start && 
+                currentFrameTime >= clip.start &&
                 currentFrameTime <= clip.start + clip.duration
               );
 
@@ -498,13 +498,13 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                 currentFrameTime >= transition.startTime &&
                 currentFrameTime <= transition.startTime + transition.duration
               );
-              
+
               // Use consistent aspect ratio handling - contain mode (same as preview)
               const videoAspect = video.videoWidth / video.videoHeight;
               const canvasAspect = exportSettings.width / exportSettings.height;
-              
+
               let drawWidth, drawHeight, offsetX, offsetY;
-              
+
               // Use 'contain' logic - video fits within canvas maintaining aspect ratio
               if (videoAspect > canvasAspect) {
                 // Video is wider than canvas - fit to width
@@ -519,22 +519,22 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                 offsetX = (exportSettings.width - drawWidth) / 2;
                 offsetY = 0;
               }
-              
+
               // Save canvas state
               ctx.save();
-              
+
               // Get transition opacity first
               const transitionOpacity = getTransitionOpacity(currentClip, currentFrameTime, activeTransitions);
-              
+
               // Apply base opacity for transitions
               ctx.globalAlpha = transitionOpacity;
-              
+
               // Draw video first
               ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
-              
+
               // Apply effects to the drawn video (post-processing)
               const effectsResult = applyEffectsToImageData(ctx, currentClip, currentFrameTime, activeTransitions, offsetX, offsetY, drawWidth, drawHeight);
-              
+
               // Apply additional fade effects if needed
               if (effectsResult.opacity !== 1) {
                 // Re-draw with opacity if fade effects are present
@@ -542,13 +542,13 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                 ctx.clearRect(offsetX, offsetY, drawWidth, drawHeight);
                 ctx.drawImage(video, offsetX, offsetY, drawWidth, drawHeight);
               }
-              
+
               console.log(`🎬 Rendered video "${currentClip.title}" with effects:`, {
                 effects: currentClip.effects,
                 opacity: transitionOpacity * effectsResult.opacity,
                 time: currentFrameTime.toFixed(2)
               });
-              
+
               // Restore canvas state
               ctx.restore();
             }
@@ -560,10 +560,10 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
             if (img.complete && img.naturalWidth > 0) {
               // Get the corresponding clip data for transformations and effects
               const imgSrc = img.src;
-              const currentClip = clips.find(clip => 
-                clip.type === 'image' && 
+              const currentClip = clips.find(clip =>
+                clip.type === 'image' &&
                 clip.videoUrl === imgSrc &&
-                currentFrameTime >= clip.start && 
+                currentFrameTime >= clip.start &&
                 currentFrameTime <= clip.start + clip.duration
               );
 
@@ -578,9 +578,9 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
               // Use consistent aspect ratio handling - contain mode (same as preview)
               const imgAspect = img.naturalWidth / img.naturalHeight;
               const canvasAspect = exportSettings.width / exportSettings.height;
-              
+
               let drawWidth, drawHeight, offsetX, offsetY;
-              
+
               // Use 'contain' logic - image fits within canvas maintaining aspect ratio
               if (imgAspect > canvasAspect) {
                 // Image is wider than canvas - fit to width
@@ -598,26 +598,26 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
               // Apply transformations AND effects
               ctx.save();
-              
+
               // Get transition opacity
               const transitionOpacity = getTransitionOpacity(currentClip, currentFrameTime, activeTransitions);
-              
+
               if (currentClip?.imageTransform) {
                 const transform = currentClip.imageTransform;
                 const centerX = exportSettings.width / 2;
                 const centerY = exportSettings.height / 2;
-                
+
                 // Move to center for transformations
                 ctx.translate(centerX, centerY);
-                
+
                 // Apply scale - use scaleX/scaleY if available, otherwise fall back to uniform scale
                 const scaleX = transform.scaleX || transform.scale || 1;
                 const scaleY = transform.scaleY || transform.scale || 1;
-                
+
                 if (scaleX !== 1 || scaleY !== 1) {
                   ctx.scale(scaleX, scaleY);
                 }
-                
+
                 // Apply flips
                 if (transform.flipHorizontal || transform.flipVertical) {
                   ctx.scale(
@@ -625,41 +625,41 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                     transform.flipVertical ? -1 : 1
                   );
                 }
-                
+
                 // Apply rotation
                 if (transform.rotation && transform.rotation !== 0) {
                   ctx.rotate(transform.rotation * Math.PI / 180);
                 }
-                
+
                 // Apply position offset
                 let finalOffsetX = offsetX - centerX;
                 let finalOffsetY = offsetY - centerY;
-                
+
                 if (transform.offsetX || transform.offsetY) {
                   finalOffsetX += (transform.offsetX || 0) * exportSettings.width / 100;
                   finalOffsetY += (transform.offsetY || 0) * exportSettings.height / 100;
                 }
-                
+
                 // Apply base opacity (transform + transition)
                 let baseOpacity = transitionOpacity;
                 if (transform.opacity !== undefined && transform.opacity !== 1) {
                   baseOpacity *= transform.opacity;
                 }
                 ctx.globalAlpha = baseOpacity;
-                
+
                 // Draw image first
                 ctx.drawImage(img, finalOffsetX, finalOffsetY, drawWidth, drawHeight);
-                
+
                 // Apply effects to the drawn image (post-processing)
                 const effectsResult = applyEffectsToImageData(ctx, currentClip, currentFrameTime, activeTransitions, finalOffsetX, finalOffsetY, drawWidth, drawHeight);
-                
+
                 // Apply additional fade effects if needed
                 if (effectsResult.opacity !== 1) {
                   ctx.globalAlpha = baseOpacity * effectsResult.opacity;
                   ctx.clearRect(finalOffsetX, finalOffsetY, drawWidth, drawHeight);
                   ctx.drawImage(img, finalOffsetX, finalOffsetY, drawWidth, drawHeight);
                 }
-                
+
                 console.log(`🖼️ Rendered image "${currentClip.title}" with effects and transforms:`, {
                   effects: currentClip.effects,
                   opacity: baseOpacity * effectsResult.opacity,
@@ -669,29 +669,29 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
               } else {
                 // No transformations - apply base opacity and draw first
                 ctx.globalAlpha = transitionOpacity;
-                
+
                 // Draw image first
                 const drawX = offsetX - exportSettings.width / 2;
                 const drawY = offsetY - exportSettings.height / 2;
                 ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-                
+
                 // Apply effects to the drawn image (post-processing)
                 const effectsResult = applyEffectsToImageData(ctx, currentClip, currentFrameTime, activeTransitions, drawX, drawY, drawWidth, drawHeight);
-                
+
                 // Apply additional fade effects if needed
                 if (effectsResult.opacity !== 1) {
                   ctx.globalAlpha = transitionOpacity * effectsResult.opacity;
                   ctx.clearRect(drawX, drawY, drawWidth, drawHeight);
                   ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
                 }
-                
+
                 console.log(`🖼️ Rendered image "${currentClip.title}" with effects only:`, {
                   effects: currentClip.effects,
                   opacity: transitionOpacity * effectsResult.opacity,
                   time: currentFrameTime.toFixed(2)
                 });
               }
-              
+
               ctx.restore();
             }
           }
@@ -699,64 +699,64 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
           // Render text overlays from multiple sources
           try {
             // Method 1: Render text clips dropped in timeline
-            const currentTextClips = clips.filter(clip => 
-              clip.type === 'text' && 
+            const currentTextClips = clips.filter(clip =>
+              clip.type === 'text' &&
               clip.visible !== false &&
               clip.textContent &&
-              currentFrameTime >= clip.start && 
+              currentFrameTime >= clip.start &&
               currentFrameTime <= clip.start + clip.duration
             );
 
             currentTextClips.forEach((clip) => {
               const x = ((clip.textPosition?.x || 50) / 100) * exportSettings.width;
               const y = ((clip.textPosition?.y || 50) / 100) * exportSettings.height;
-              
+
               // Scale font size appropriately for export resolution
               const baseFontSize = clip.textStyle?.fontSize || 24;
               const scaleFactor = Math.min(exportSettings.width / 1920, exportSettings.height / 1080);
               const fontSize = Math.max(16, baseFontSize * scaleFactor);
-              
+
               const text = clip.textContent || '';
-              
+
               if (text.trim()) {
                 // Set font properties
                 const fontWeight = clip.textStyle?.fontWeight || 'bold';
                 const fontFamily = clip.textStyle?.fontFamily || 'Inter, sans-serif';
                 ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
                 ctx.fillStyle = clip.textStyle?.color || '#ffffff';
-                
+
                 // Use consistent text alignment
                 const textAlign = clip.textStyle?.textAlign || 'center';
                 ctx.textAlign = textAlign as CanvasTextAlign;
                 ctx.textBaseline = 'middle';
-                
+
                 // Add text shadow for better visibility
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                 ctx.shadowBlur = 8;
                 ctx.shadowOffsetX = 3;
                 ctx.shadowOffsetY = 3;
-                
+
                 // Add text outline for better visibility
                 ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
                 ctx.lineWidth = Math.max(2, fontSize / 12);
-                
+
                 const lines = text.split('\n');
                 const lineHeight = fontSize * 1.2;
                 const startY = y - ((lines.length - 1) * lineHeight / 2);
-                
+
                 lines.forEach((line: string, index: number) => {
                   if (line.trim()) {
                     const lineY = startY + (lineHeight * index);
                     // Draw outline first, then fill
                     ctx.strokeText(line, x, lineY);
                     ctx.fillText(line, x, lineY);
-                    
+
                     if (frameIndex === 0) {
                       console.log(`✅ Rendered text clip: "${line}" at (${x.toFixed(1)}, ${lineY.toFixed(1)}) with align: ${textAlign}`);
                     }
                   }
                 });
-                
+
                 // Reset styles
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
@@ -770,63 +770,63 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
             // Method 2: Render text overlays directly from editor store (floating overlays)
             const editorStore = useEditorStore.getState();
             if (editorStore && editorStore.textOverlays) {
-              const activeOverlays = editorStore.textOverlays.filter(overlay => 
-                overlay.visible && 
-                overlay.startTime <= currentFrameTime && 
+              const activeOverlays = editorStore.textOverlays.filter(overlay =>
+                overlay.visible &&
+                overlay.startTime <= currentFrameTime &&
                 overlay.endTime >= currentFrameTime &&
                 !overlay.droppedInTimeline // Only render overlays NOT dropped in timeline
               );
-              
+
               activeOverlays.forEach((overlay: any) => {
                 const x = (overlay.position.x / 100) * exportSettings.width;
                 const y = (overlay.position.y / 100) * exportSettings.height;
-                
+
                 // Scale font size appropriately for export resolution
                 const baseFontSize = overlay.style?.fontSize || 24;
                 const scaleFactor = Math.min(exportSettings.width / 1920, exportSettings.height / 1080);
                 const fontSize = Math.max(16, baseFontSize * scaleFactor);
-                
+
                 const text = overlay.content || '';
-                
+
                 if (text.trim()) {
                   // Set font properties
                   const fontWeight = overlay.style?.fontWeight || 'bold';
                   const fontFamily = overlay.style?.fontFamily || 'Inter, sans-serif';
                   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
                   ctx.fillStyle = overlay.style?.color || '#ffffff';
-                  
+
                   // Use consistent text alignment
                   const textAlign = overlay.style?.textAlign || 'center';
                   ctx.textAlign = textAlign as CanvasTextAlign;
                   ctx.textBaseline = 'middle';
-                  
+
                   // Add text shadow for better visibility
                   ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                   ctx.shadowBlur = 8;
                   ctx.shadowOffsetX = 3;
                   ctx.shadowOffsetY = 3;
-                  
+
                   // Add text outline for better visibility
                   ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
                   ctx.lineWidth = Math.max(2, fontSize / 12);
-                  
+
                   const lines = text.split('\n');
                   const lineHeight = fontSize * 1.2;
                   const startY = y - ((lines.length - 1) * lineHeight / 2);
-                  
+
                   lines.forEach((line: string, index: number) => {
                     if (line.trim()) {
                       const lineY = startY + (lineHeight * index);
                       // Draw outline first, then fill
                       ctx.strokeText(line, x, lineY);
                       ctx.fillText(line, x, lineY);
-                      
+
                       if (frameIndex === 0) {
                         console.log(`✅ Rendered floating overlay: "${line}" at (${x.toFixed(1)}, ${lineY.toFixed(1)}) with align: ${textAlign}`);
                       }
                     }
                   });
-                  
+
                   // Reset styles
                   ctx.shadowColor = 'transparent';
                   ctx.shadowBlur = 0;
@@ -853,29 +853,29 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
             if (effectEl.style.display !== 'none' && effectEl.offsetWidth > 0 && effectEl.offsetHeight > 0) {
               const rect = effectEl.getBoundingClientRect();
               const previewRect = previewDisplay.getBoundingClientRect();
-              
+
               if (rect.width > 0 && rect.height > 0) {
                 const x = ((rect.left - previewRect.left) / previewRect.width) * exportSettings.width;
                 const y = ((rect.top - previewRect.top) / previewRect.height) * exportSettings.height;
                 const width = (rect.width / previewRect.width) * exportSettings.width;
                 const height = (rect.height / previewRect.height) * exportSettings.height;
-                
+
                 // Apply the effect styles
                 const computedStyle = window.getComputedStyle(effectEl);
-                
+
                 // Handle background effects
                 if (computedStyle.backgroundColor && computedStyle.backgroundColor !== 'rgba(0, 0, 0, 0)') {
                   ctx.fillStyle = computedStyle.backgroundColor;
                   ctx.fillRect(x, y, width, height);
                 }
-                
+
                 // Handle border effects
                 if (computedStyle.border && computedStyle.border !== 'none') {
                   ctx.strokeStyle = computedStyle.borderColor || '#ffffff';
                   ctx.lineWidth = parseInt(computedStyle.borderWidth) || 1;
                   ctx.strokeRect(x, y, width, height);
                 }
-                
+
                 // Handle opacity effects
                 if (computedStyle.opacity && computedStyle.opacity !== '1') {
                   ctx.globalAlpha = parseFloat(computedStyle.opacity);
@@ -901,7 +901,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
       const frameFilename = `frame_${frameIndex.toString().padStart(6, '0')}.jpg`;
       const arrayBuffer = await blob.arrayBuffer();
-      
+
       if (ffmpegRef.current) {
         await ffmpegRef.current.writeFile(frameFilename, new Uint8Array(arrayBuffer));
         frameFiles.push(frameFilename);
@@ -968,7 +968,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
       // Step 2: Create video from frames (60-80%)
       setExportProgress(60);
-      
+
       // Ultra-fast video encoding arguments for maximum speed
       const videoArgs = [
         '-framerate', exportSettings.frameRate.toString(),
@@ -993,7 +993,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
       // Step 3: Process audio if available (80-90%)
       setExportProgress(80);
-      
+
       const audioInputs = await prepareAudioInputs();
       let finalArgs: string[] = ['-i', 'temp_video.mp4'];
 
@@ -1019,8 +1019,8 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
         }
 
         if (audioFilters.length > 0) {
-          const mixFilter = audioFilters.join(';') + ';' + 
-            audioFilters.map((_, i) => `[a${i}]`).join('') + 
+          const mixFilter = audioFilters.join(';') + ';' +
+            audioFilters.map((_, i) => `[a${i}]`).join('') +
             `amix=inputs=${audioFilters.length}:duration=longest[aout]`;
 
           finalArgs.push(
@@ -1045,7 +1045,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
       // Step 4: Final output (90-95%)
       setExportProgress(90);
-      
+
       const outputFilename = `output.${exportSettings.format}`;
       finalArgs.push(outputFilename);
 
@@ -1053,12 +1053,26 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
 
       // Step 5: Download the result (95-100%)
       setExportProgress(95);
-      
+
       const outputData = await ffmpeg.readFile(outputFilename);
-      const outputBlob = new Blob([outputData], { 
-        type: exportSettings.format === 'mp4' ? 'video/mp4' : 'video/webm' 
-      });
-      
+      let outputBlob: Blob;
+
+      if (outputData instanceof Uint8Array) {
+        // Create a new Uint8Array with ArrayBuffer to ensure proper typing
+        outputBlob = new Blob([new Uint8Array(outputData)], {
+          type: exportSettings.format === 'mp4' ? 'video/mp4' : 'video/webm',
+        });
+      } else if (typeof outputData === 'string') {
+        outputBlob = new Blob([new TextEncoder().encode(outputData)], {
+          type: exportSettings.format === 'mp4' ? 'video/mp4' : 'video/webm',
+        });
+      } else {
+        outputBlob = new Blob([new Uint8Array(outputData)], {
+          type: exportSettings.format === 'mp4' ? 'video/mp4' : 'video/webm',
+        });
+      }
+
+
       // Download the file
       const url = URL.createObjectURL(outputBlob);
       const link = document.createElement('a');
@@ -1074,27 +1088,27 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
       try {
         // Clean up in batches for better performance
         const cleanupPromises = frameFiles.map(async (filename) => {
-          try { await ffmpeg.deleteFile(filename); } catch {}
+          try { await ffmpeg.deleteFile(filename); } catch { }
         });
         await Promise.all(cleanupPromises.slice(0, 10)); // Clean first 10 files immediately
-        
+
         // Clean the rest in the background
         setTimeout(async () => {
           await Promise.all(cleanupPromises.slice(10));
-          try { await ffmpeg.deleteFile('temp_video.mp4'); } catch {}
-          try { await ffmpeg.deleteFile(outputFilename); } catch {}
+          try { await ffmpeg.deleteFile('temp_video.mp4'); } catch { }
+          try { await ffmpeg.deleteFile(outputFilename); } catch { }
           audioInputs.forEach(async (filename) => {
-            try { await ffmpeg.deleteFile(filename); } catch {}
+            try { await ffmpeg.deleteFile(filename); } catch { }
           });
         }, 100);
-        
+
       } catch (error) {
         console.warn('Cleanup warning:', error);
       }
 
       setExportProgress(100);
       setIsExporting(false);
-      
+
       toast({
         title: "Export completed successfully!",
         description: `Your ${exportSettings.quality} quality video (${Math.round(actualDuration)}s) has been downloaded in ${((Date.now() - performance.now()) / 1000).toFixed(1)}s.`,
@@ -1104,7 +1118,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
       console.error('Export failed:', error);
       setIsExporting(false);
       setExportProgress(0);
-      
+
       toast({
         title: "Export failed",
         description: `An error occurred during video export: ${error}`,
@@ -1112,13 +1126,13 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
       });
     }
   }, [
-    ffmpegLoaded, 
-    isExporting, 
-    exportSettings, 
-    actualDuration, 
-    clips, 
-    generateFrames, 
-    prepareAudioInputs, 
+    ffmpegLoaded,
+    isExporting,
+    exportSettings,
+    actualDuration,
+    clips,
+    generateFrames,
+    prepareAudioInputs,
     toast
   ]);
 
@@ -1159,15 +1173,15 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
           width={exportSettings.width}
           height={exportSettings.height}
           playing={false}
-          onPlayToggle={() => {}}
+          onPlayToggle={() => { }}
         />
       </div>
 
       {/* Export Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button 
-            variant="default" 
+          <Button
+            variant="default"
             size="sm"
             disabled={clips.length === 0 || actualDuration === 0 || !ffmpegLoaded}
           >
@@ -1175,7 +1189,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
             Export Video
           </Button>
         </DialogTrigger>
-        
+
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1211,7 +1225,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                       width={400}
                       height={225}
                       playing={false}
-                      onPlayToggle={() => {}}
+                      onPlayToggle={() => { }}
                     />
                   </div>
                   <div className="flex justify-between text-sm mb-2">
@@ -1242,7 +1256,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                   <Label>Export Quality</Label>
                   <Select
                     value={exportSettings.quality}
-                    onValueChange={(value: 'ultra' | 'high' | 'medium' | 'low' | 'fast') => 
+                    onValueChange={(value: 'ultra' | 'high' | 'medium' | 'low' | 'fast') =>
                       updateExportSettings(value)
                     }
                   >
@@ -1283,8 +1297,8 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                     </SelectContent>
                   </Select>
                   <div className="text-sm text-gray-500 mt-1">
-                    Resolution: {exportSettings.width} × {exportSettings.height} • 
-                    Video: {exportSettings.videoBitrate} • 
+                    Resolution: {exportSettings.width} × {exportSettings.height} •
+                    Video: {exportSettings.videoBitrate} •
                     Audio: {exportSettings.audioBitrate}
                   </div>
                 </div>
@@ -1327,7 +1341,7 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
             {/* Export Actions */}
             <div className="flex gap-3 pt-2">
               {isExporting ? (
-                <Button 
+                <Button
                   onClick={cancelExport}
                   variant="destructive"
                   className="w-full"
@@ -1337,14 +1351,14 @@ const SimpleVideoExporter: React.FC<SimpleVideoExporterProps> = ({
                 </Button>
               ) : (
                 <>
-                  <Button 
+                  <Button
                     onClick={() => setIsDialogOpen(false)}
                     variant="outline"
                     className="flex-1"
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setIsPreviewPlaying(false);
                       startExport();
